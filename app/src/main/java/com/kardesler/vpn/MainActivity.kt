@@ -16,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.net.HttpURLConnection
@@ -35,6 +37,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var code: EditText
     private lateinit var device: EditText
     private lateinit var paste: EditText
+    private lateinit var invite: LinearLayout
+
+    private val scanner = registerForActivityResult(ScanContract()) { r ->
+        r.contents?.let { saveConfig(it) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,16 +58,30 @@ class MainActivity : AppCompatActivity() {
 
         setup = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(0, pad * 2, 0, 0) }
         setup.addView(TextView(this).apply { text = "Cihazı kaydet"; textSize = 18f; setTypeface(typeface, Typeface.BOLD) })
-        server = field("Sunucu adresi (https://...)", InputType.TYPE_TEXT_VARIATION_URI)
-        code = field("Davet kodu", InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
-        device = field("Cihaz adı (ör. telefon)", InputType.TYPE_CLASS_TEXT)
-        server.setText(prefs.getString("server", ""))
-        setup.addView(server); setup.addView(code); setup.addView(device)
-        setup.addView(Button(this).apply { text = "Kaydol"; setOnClickListener { register() } })
+        setup.addView(Button(this).apply {
+            text = "QR kodu tara"; textSize = 18f
+            setOnClickListener {
+                scanner.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                    .setPrompt("Sunucudaki QR kodu okutun").setBeepEnabled(false).setOrientationLocked(false))
+            }
+        })
         setup.addView(TextView(this).apply { text = "\nveya WireGuard ayarını yapıştır:" })
         paste = field("[Interface] ...", InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE).apply { minLines = 3 }
         setup.addView(paste)
         setup.addView(Button(this).apply { text = "Ayarı kaydet"; setOnClickListener { saveConfig(paste.text.toString()) } })
+
+        invite = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; visibility = LinearLayout.GONE }
+        server = field("Sunucu adresi (https://...)", InputType.TYPE_TEXT_VARIATION_URI)
+        code = field("Davet kodu", InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
+        device = field("Cihaz adı (ör. telefon)", InputType.TYPE_CLASS_TEXT)
+        server.setText(prefs.getString("server", ""))
+        invite.addView(server); invite.addView(code); invite.addView(device)
+        invite.addView(Button(this).apply { text = "Kaydol"; setOnClickListener { register() } })
+        setup.addView(TextView(this).apply {
+            text = "\nDavet kodum var ›"; setPadding(0, pad, 0, 0)
+            setOnClickListener { invite.visibility = if (invite.visibility == LinearLayout.GONE) LinearLayout.VISIBLE else LinearLayout.GONE }
+        })
+        setup.addView(invite)
         root.addView(setup)
 
         root.addView(Button(this).apply {
@@ -142,7 +163,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveConfig(text: String) {
+    private fun saveConfig(raw: String) {
+        val text = raw.trim() + "\n"
         val ok = runCatching { Config.parse(text.byteInputStream()) }
         if (ok.isFailure) { status.text = "Ayar geçersiz: ${ok.exceptionOrNull()?.message}"; return }
         prefs.edit().putString("config", text).apply()

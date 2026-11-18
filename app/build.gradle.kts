@@ -11,8 +11,8 @@ android {
         applicationId = "com.kardesler.vpn"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
     }
 
     // Guncellemelerin eski surumun uzerine kurulabilmesi icin APK hep ayni anahtarla imzalanmali.
@@ -42,4 +42,5 @@ android {
 dependencies {
     implementation("com.wireguard.android:tunnel:1.0.20230706")
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 }
