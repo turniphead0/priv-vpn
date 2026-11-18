@@ -2,7 +2,11 @@ package com.kardesler.vpn
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.net.VpnService
 import android.os.Bundle
 import android.text.InputType
@@ -46,10 +50,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val pad = (16 * resources.displayMetrics.density).toInt()
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(pad, pad * 2, pad, pad) }
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; setPadding(pad, pad * 2, pad, pad)
+            background = GradientDrawable().apply { setColor(Color.argb(200, 28, 16, 8)); cornerRadius = pad.toFloat() }
+        }
 
         root.addView(TextView(this).apply {
-            text = getString(R.string.app_name); textSize = 26f; setTypeface(typeface, Typeface.BOLD); gravity = Gravity.CENTER
+            text = getString(R.string.app_name); textSize = 26f; setTypeface(typeface, Typeface.BOLD); gravity = Gravity.CENTER; setTextColor(Color.rgb(245, 222, 179))
         })
         status = TextView(this).apply { textSize = 18f; gravity = Gravity.CENTER; setPadding(0, pad, 0, pad) }
         root.addView(status)
@@ -87,7 +94,17 @@ class MainActivity : AppCompatActivity() {
         root.addView(Button(this).apply {
             text = "Cihaz kaydını sıfırla"; setOnClickListener { reset() }
         })
-        setContentView(ScrollView(this).apply { addView(root) })
+        val bg = ImageView(this).apply {
+            setImageResource(R.drawable.bg_kahvehane); scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            addView(FrameLayout(this@MainActivity).apply {
+                setPadding(pad, pad * 3, pad, pad * 3)
+                addView(root, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+            })
+        }
+        setContentView(FrameLayout(this).apply { addView(bg); addView(scroll) })
         refresh()
     }
 

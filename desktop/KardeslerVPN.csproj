@@ -9,10 +9,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>KardeslerVPN</AssemblyName>
     <Product>Kardeşler VPN</Product>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
+    <EmbeddedResource Include="bg.jpg" LogicalName="bg.jpg" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
   </ItemGroup>
 </Project>
