@@ -1,0 +1,10 @@
+[Unit]
+Description=VPN cihaz kayit API
+After=network.target wg-quick@wg0.service
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/vpn/vpn-api.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
